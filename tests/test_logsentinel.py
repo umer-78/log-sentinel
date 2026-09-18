@@ -79,3 +79,32 @@ def test_cli_missing_file(capsys):
     import pytest
     with pytest.raises(SystemExit):
         main(["/nope/auth.log"])
+
+
+def test_piping_into_head_does_not_print_a_traceback(tmp_path):
+    """`logsentinel samples/auth.log | head` closes the pipe early; that must end quietly.
+
+    Without the guard in cli.main, Python prints a BrokenPipeError traceback to
+    stderr the moment the reader goes away — which looks like a crash in any
+    pipeline a person actually writes.
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    env = {"PATH": "/usr/bin:/bin", "PYTHONPATH": str(root / "src")}
+
+    producer = subprocess.Popen(
+        [sys.executable, "-m", 'logsentinel'] + ['samples/auth.log'],
+        cwd=root, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        
+    )
+    reader = subprocess.Popen(["head", "-2"], stdin=producer.stdout, stdout=subprocess.DEVNULL)
+    producer.stdout.close()
+    reader.communicate()
+    stderr = producer.stderr.read().decode()
+    producer.wait()
+
+    assert "BrokenPipeError" not in stderr, stderr
+    assert "Traceback" not in stderr, stderr
