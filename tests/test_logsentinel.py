@@ -98,7 +98,7 @@ def test_piping_into_head_does_not_print_a_traceback(tmp_path):
     producer = subprocess.Popen(
         [sys.executable, "-m", 'logsentinel'] + ['samples/auth.log'],
         cwd=root, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        
+
     )
     reader = subprocess.Popen(["head", "-2"], stdin=producer.stdout, stdout=subprocess.DEVNULL)
     producer.stdout.close()
