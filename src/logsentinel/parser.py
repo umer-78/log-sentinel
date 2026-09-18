@@ -34,10 +34,36 @@ class AuthEvent:
     ip: str
 
 
+# RFC5424 allows one to six fractional-second digits. datetime.fromisoformat
+# accepts exactly three or six before Python 3.11, so a real timestamp like
+# 10:00:00.5+05:00 parses on 3.11 and raises on 3.10 — which is the kind of bug
+# that only shows up on the one machine running the older interpreter.
+_ISO_TS = re.compile(
+    r"^(?P<head>\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2})"
+    r"(?:\.(?P<frac>\d+))?"
+    r"(?P<zone>Z|[+-]\d{2}:?\d{2})?$"
+)
+
+
 def _parse_ts(raw: str, year: int) -> datetime:
-    if raw[0].isdigit():
-        return datetime.fromisoformat(raw.replace("Z", "+00:00")).replace(tzinfo=None)
-    return datetime.strptime(f"{year} {' '.join(raw.split())}", "%Y %b %d %H:%M:%S")
+    """Parse a syslog timestamp. Returns naive local time, as the rest of the
+    tool compares timestamps to each other rather than across zones."""
+    if not raw[0].isdigit():
+        return datetime.strptime(f"{year} {' '.join(raw.split())}", "%Y %b %d %H:%M:%S")
+
+    m = _ISO_TS.match(raw.strip())
+    if not m:
+        raise ValueError(f"unrecognised timestamp: {raw!r}")
+
+    text = m.group("head")
+    if m.group("frac"):
+        # Pad or truncate to the six digits fromisoformat wants on every version.
+        text += "." + m.group("frac")[:6].ljust(6, "0")
+    zone = m.group("zone")
+    if zone:
+        text += "+00:00" if zone == "Z" else (zone if ":" in zone else f"{zone[:3]}:{zone[3:]}")
+
+    return datetime.fromisoformat(text).replace(tzinfo=None)
 
 
 def parse_line(line: str, year: int | None = None) -> AuthEvent | None:

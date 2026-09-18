@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import pytest
+
 from logsentinel import DetectorConfig, detect, parse_line, parse_lines
 from logsentinel.cli import main
+from logsentinel.parser import _parse_ts
 
 SAMPLE = Path(__file__).resolve().parent.parent / "samples" / "auth.log"
 
@@ -77,6 +80,7 @@ def test_cli_blocklist_and_exit_code(capsys):
 
 def test_cli_missing_file(capsys):
     import pytest
+
     with pytest.raises(SystemExit):
         main(["/nope/auth.log"])
 
@@ -108,3 +112,35 @@ def test_piping_into_head_does_not_print_a_traceback(tmp_path):
 
     assert "BrokenPipeError" not in stderr, stderr
     assert "Traceback" not in stderr, stderr
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("2026-09-17T10:00:00Z", "2026-09-17 10:00:00"),
+        ("2026-09-17T10:00:00+05:00", "2026-09-17 10:00:00"),
+        ("2026-09-17T10:00:00+0500", "2026-09-17 10:00:00"),          # offset without a colon
+        ("2026-09-17T10:00:00.5+05:00", "2026-09-17 10:00:00.500000"),  # one fractional digit
+        ("2026-09-17T10:00:00.12+05:30", "2026-09-17 10:00:00.120000"),
+        ("2026-09-17T10:00:00.123456+00:00", "2026-09-17 10:00:00.123456"),
+        ("2026-09-17 10:00:00", "2026-09-17 10:00:00"),               # space instead of T
+    ],
+)
+def test_rfc5424_timestamps_parse_on_every_supported_python(raw, expected):
+    """RFC5424 allows one to six fractional digits and an offset with or without
+    a colon. datetime.fromisoformat only became permissive in 3.11, so these are
+    exactly the shapes that used to parse on a developer's machine and raise on a
+    server running 3.10."""
+    assert str(_parse_ts(raw, 2026)) == expected
+
+
+def test_an_unrecognisable_timestamp_says_so():
+    # Starts with a digit, so it takes the ISO path, but is not a shape RFC5424
+    # permits. The error names the input rather than leaking a parser message.
+    with pytest.raises(ValueError, match="unrecognised timestamp"):
+        _parse_ts("2026/09/17 10:00", 2026)
+
+
+def test_an_impossible_date_is_still_rejected():
+    with pytest.raises(ValueError):
+        _parse_ts("2026-13-45T99:99:99", 2026)
