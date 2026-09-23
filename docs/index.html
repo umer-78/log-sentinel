@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>logsentinel — SSH Brute-Force Detector Demo</title>
+  <meta name="description" content="Interactive demo of logsentinel: parse auth.log lines and detect brute-force, spray and success-after-failures attacks in the browser.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563eb'/><text x='16' y='23' font-size='16' text-anchor='middle' fill='white' font-family='monospace'>LS</text></svg>">
+  <style>
+    :root {
+      --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef0f4; --border: #dde1e8;
+      --text: #16181d; --muted: #5d6573; --accent: #2563eb; --accent-ink: #ffffff;
+      --good: #15803d; --bad: #b91c1c; --warn: #d97706;
+      --radius: 12px;
+      --shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 4px 16px rgb(16 24 40 / 0.05);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1116; --surface: #161a21; --surface-2: #1d222b; --border: #2a303b;
+        --text: #e8eaee; --muted: #9aa3b2; --accent: #60a5fa; --accent-ink: #0b1220;
+        --good: #4ade80; --bad: #f87171; --warn: #fbbf24;
+        --shadow: none; color-scheme: dark;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 16px 48px; }
+    header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    header.top h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+    header.top p { margin: 2px 0 0; color: var(--muted); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); min-width: 0; margin-bottom: 16px; }
+    .card h2 { font-size: 15px; margin: 0 0 12px; }
+    .grid { display: grid; gap: 16px; }
+    .grid.two { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    input, select, textarea, button { font: inherit; color: inherit; }
+    input, select, textarea {
+      width: 100%; padding: 9px 11px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--surface-2); outline: none; min-width: 0;
+    }
+    textarea { font-family: var(--mono); font-size: 13px; line-height: 1.45; resize: vertical; }
+    input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    button {
+      cursor: pointer; border: 1px solid var(--border); background: var(--surface-2);
+      padding: 9px 14px; border-radius: 9px; font-weight: 600;
+    }
+    button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+    .row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+    .row > * { flex: 1 1 160px; }
+    .row > button { flex: 0 0 auto; }
+    .muted { color: var(--muted); }
+    .mono { font-family: var(--mono); }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 12px 0; }
+    .stat { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+    .stat .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .stat .v { font-family: var(--mono); font-size: 18px; font-weight: 700; margin-top: 2px; }
+    .alert { border-radius: 10px; border: 1px solid var(--border); padding: 12px 14px; margin: 10px 0; background: var(--surface-2); }
+    .alert.critical { border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: color-mix(in srgb, var(--bad) 8%, var(--surface)); }
+    .alert.high { border-color: color-mix(in srgb, var(--bad) 30%, transparent); background: color-mix(in srgb, var(--bad) 5%, var(--surface)); }
+    .alert.medium { border-color: color-mix(in srgb, var(--warn) 40%, transparent); background: color-mix(in srgb, var(--warn) 7%, var(--surface)); }
+    .alert-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-weight: 700; }
+    .sev { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 99px; font-weight: 700; }
+    .sev.critical { background: var(--bad); color: #fff; }
+    .sev.high { background: color-mix(in srgb, var(--bad) 80%, #000); color: #fff; }
+    .sev.medium { background: var(--warn); color: #111; }
+    .rule { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+    .alert-meta { margin-top: 6px; font-size: 13px; color: var(--muted); display: grid; gap: 3px; }
+    .alert-meta b { color: var(--text); font-weight: 600; }
+    .timeline { position: relative; margin-top: 14px; padding-left: 4px; }
+    .tl-row { display: grid; grid-template-columns: 70px 1fr; gap: 10px; align-items: start; margin: 4px 0; font-size: 13px; }
+    .tl-time { font-family: var(--mono); color: var(--muted); text-align: right; padding-top: 2px; }
+    .tl-body { border-left: 2px solid var(--border); padding: 4px 0 4px 12px; position: relative; }
+    .tl-body::before { content: ''; position: absolute; left: -5px; top: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .tl-body.fail::before { background: var(--bad); }
+    .tl-body.ok::before { background: var(--good); }
+    .tl-body.alert::before { background: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 30%, transparent); }
+    .tl-label { font-weight: 600; }
+    .tl-detail { color: var(--muted); font-family: var(--mono); font-size: 12px; word-break: break-all; }
+    .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .presets button { font-size: 13px; padding: 5px 10px; font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .table-wrap { overflow-x: auto; }
+    footer { margin-top: 32px; color: var(--muted); font-size: 13px; text-align: center; }
+    code { font-family: var(--mono); font-size: 0.92em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+    .ok-note { color: var(--good); font-weight: 600; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1>logsentinel — SSH Brute-Force Detector</h1>
+        <p>Paste auth.log lines, set thresholds, and watch the sliding-window rules fire — entirely in the browser.</p>
+      </div>
+      <a href="https://github.com/umer-78/log-sentinel">Source on GitHub</a>
+    </header>
+
+    <section class="card">
+      <h2>1 · Authentication log</h2>
+      <p class="muted" style="margin-top:0">Classic syslog timestamps (<code>Sep 17 03:00:00</code>) or RFC 3339. Year defaults to 2026 to match the sample.</p>
+      <label for="logInput">auth.log lines</label>
+      <textarea id="logInput" rows="8" spellcheck="false" aria-describedby="logHint"></textarea>
+      <p class="muted" id="logHint" style="font-size:13px;margin:6px 0 0">Loaded with <code>samples/auth.log</code> — synthetic, documentation IP ranges only.</p>
+      <div class="presets">
+        <button type="button" id="loadSample">Load full sample</button>
+        <button type="button" id="loadTiny">Tiny brute-force only</button>
+        <button type="button" id="loadSpray">Spray only</button>
+        <button type="button" id="loadClean">Clean log</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2 · Detection settings</h2>
+      <div class="row">
+        <div>
+          <label for="threshold">Brute-force threshold (failures / window)</label>
+          <input id="threshold" type="number" min="1" max="100" value="10">
+        </div>
+        <div>
+          <label for="spray">Spray threshold (distinct users)</label>
+          <input id="spray" type="number" min="1" max="50" value="5">
+        </div>
+        <div>
+          <label for="windowMin">Window (minutes)</label>
+          <input id="windowMin" type="number" min="1" max="120" value="10">
+        </div>
+        <div>
+          <label for="year">Year for syslog timestamps</label>
+          <input id="year" type="number" min="2000" max="2100" value="2026">
+        </div>
+        <div style="flex:0 0 auto">
+          <button class="primary" id="runBtn" type="button">Detect</button>
+        </div>
+      </div>
+      <div class="stats" aria-live="polite">
+        <div class="stat"><div class="k">Parsed lines</div><div class="v" id="statParsed">0</div></div>
+        <div class="stat"><div class="k">Failed logins</div><div class="v" id="statFailed">0</div></div>
+        <div class="stat"><div class="k">Invalid users</div><div class="v" id="statInvalid">0</div></div>
+        <div class="stat"><div class="k">Successful</div><div class="v" id="statSuccess">0</div></div>
+        <div class="stat"><div class="k">Alerts</div><div class="v" id="statAlerts">0</div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>3 · Findings</h2>
+      <div id="alerts" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2>4 · Timeline</h2>
+      <p class="muted" style="margin-top:0">Events and alerts in chronological order. Red = failure, green = success, amber ring = alert raised.</p>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <div class="grid two">
+      <section class="card">
+        <h2>Detection rules</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Rule</th><th>Fires when</th><th>Severity</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">brute_force</td><td>one IP has ≥ threshold failures in the window</td><td>high</td></tr>
+              <tr><td class="mono">password_spray</td><td>one IP tries ≥ spray distinct usernames</td><td>medium</td></tr>
+              <tr><td class="mono">success_after_failures</td><td>login succeeds after ≥ half-threshold recent failures</td><td>critical</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted" style="margin-bottom:0">The window slides per IP. Lower the threshold or raise the window to catch slower attacks.</p>
+      </section>
+
+      <section class="card">
+        <h2>What the sample contains</h2>
+        <ul class="muted" style="margin:0;padding-left:20px">
+          <li><b>198.51.100.23</b> — 40 failures on <code>root</code> in ~4 minutes → brute force</li>
+          <li><b>203.0.113.77</b> — 8 distinct usernames → password spray</li>
+          <li><b>2001:db8::42</b> — 7 failures on <code>alice</code>, then success → critical</li>
+          <li><b>192.0.2.55</b> — 2 failures then success (under threshold, no alert)</li>
+        </ul>
+        <p class="muted" style="margin-bottom:0">Invalid-user lines are deduplicated within 5s so sshd's double logging counts once.</p>
+      </section>
+    </div>
+
+    <footer>14 tests · Python 3.10+ · standard library only · Built by <a href="https://github.com/umer-78">Umer Hashmi</a></footer>
+  </div>
+
+  <script>
+    'use strict';
+    const SAMPLE = `Sep 17 02:00:00 web01 sshd[6305]: Accepted publickey for deploy from 192.0.2.10 port 50122 ssh2: ED25519 SHA256:abc
+Sep 17 03:00:00 web01 sshd[1791]: Failed password for root from 198.51.100.23 port 40000 ssh2
+Sep 17 03:00:06 web01 sshd[2186]: Failed password for root from 198.51.100.23 port 40001 ssh2
+Sep 17 03:00:12 web01 sshd[9779]: Failed password for root from 198.51.100.23 port 40002 ssh2
+Sep 17 03:00:18 web01 sshd[2542]: Failed password for root from 198.51.100.23 port 40003 ssh2
+Sep 17 03:00:24 web01 sshd[6991]: Failed password for root from 198.51.100.23 port 40004 ssh2
+Sep 17 03:00:30 web01 sshd[1950]: Failed password for root from 198.51.100.23 port 40005 ssh2
+Sep 17 03:00:36 web01 sshd[9313]: Failed password for root from 198.51.100.23 port 40006 ssh2
+Sep 17 03:00:42 web01 sshd[4517]: Failed password for root from 198.51.100.23 port 40007 ssh2
+Sep 17 03:00:48 web01 sshd[1614]: Failed password for root from 198.51.100.23 port 40008 ssh2
+Sep 17 03:00:54 web01 sshd[2408]: Failed password for root from 198.51.100.23 port 40009 ssh2
+Sep 17 03:01:00 web01 sshd[8104]: Failed password for root from 198.51.100.23 port 40010 ssh2
+Sep 17 03:01:06 web01 sshd[7851]: Failed password for root from 198.51.100.23 port 40011 ssh2
+Sep 17 03:01:12 web01 sshd[2144]: Failed password for root from 198.51.100.23 port 40012 ssh2
+Sep 17 03:01:18 web01 sshd[4943]: Failed password for root from 198.51.100.23 port 40013 ssh2
+Sep 17 03:01:24 web01 sshd[2486]: Failed password for root from 198.51.100.23 port 40014 ssh2
+Sep 17 03:01:30 web01 sshd[7955]: Failed password for root from 198.51.100.23 port 40015 ssh2
+Sep 17 03:01:36 web01 sshd[1968]: Failed password for root from 198.51.100.23 port 40016 ssh2
+Sep 17 03:01:42 web01 sshd[3028]: Failed password for root from 198.51.100.23 port 40017 ssh2
+Sep 17 03:01:48 web01 sshd[4657]: Failed password for root from 198.51.100.23 port 40018 ssh2
+Sep 17 03:01:54 web01 sshd[2013]: Failed password for root from 198.51.100.23 port 40019 ssh2
+Sep 17 03:02:00 web01 sshd[7499]: Failed password for root from 198.51.100.23 port 40020 ssh2
+Sep 17 03:02:06 web01 sshd[1812]: Failed password for root from 198.51.100.23 port 40021 ssh2
+Sep 17 03:02:12 web01 sshd[4622]: Failed password for root from 198.51.100.23 port 40022 ssh2
+Sep 17 03:02:18 web01 sshd[1763]: Failed password for root from 198.51.100.23 port 40023 ssh2
+Sep 17 03:02:24 web01 sshd[3181]: Failed password for root from 198.51.100.23 port 40024 ssh2
+Sep 17 03:02:30 web01 sshd[5744]: Failed password for root from 198.51.100.23 port 40025 ssh2
+Sep 17 03:02:36 web01 sshd[7867]: Failed password for root from 198.51.100.23 port 40026 ssh2
+Sep 17 03:02:42 web01 sshd[3363]: Failed password for root from 198.51.100.23 port 40027 ssh2
+Sep 17 03:02:48 web01 sshd[9858]: Failed password for root from 198.51.100.23 port 40028 ssh2
+Sep 17 03:02:54 web01 sshd[2929]: Failed password for root from 198.51.100.23 port 40029 ssh2
+Sep 17 03:03:00 web01 sshd[6054]: Failed password for root from 198.51.100.23 port 40030 ssh2
+Sep 17 03:03:06 web01 sshd[3961]: Failed password for root from 198.51.100.23 port 40031 ssh2
+Sep 17 03:03:12 web01 sshd[2688]: Failed password for root from 198.51.100.23 port 40032 ssh2
+Sep 17 03:03:18 web01 sshd[4078]: Failed password for root from 198.51.100.23 port 40033 ssh2
+Sep 17 03:03:24 web01 sshd[7101]: Failed password for root from 198.51.100.23 port 40034 ssh2
+Sep 17 03:03:30 web01 sshd[2596]: Failed password for root from 198.51.100.23 port 40035 ssh2
+Sep 17 03:03:36 web01 sshd[9974]: Failed password for root from 198.51.100.23 port 40036 ssh2
+Sep 17 03:03:42 web01 sshd[2028]: Failed password for root from 198.51.100.23 port 40037 ssh2
+Sep 17 03:03:48 web01 sshd[1976]: Failed password for root from 198.51.100.23 port 40038 ssh2
+Sep 17 03:03:54 web01 sshd[4374]: Failed password for root from 198.51.100.23 port 40039 ssh2
+Sep 17 05:00:00 web01 sshd[9133]: Invalid user admin from 203.0.113.77 port 41000
+Sep 17 05:00:01 web01 sshd[9711]: Failed password for invalid user admin from 203.0.113.77 port 41000 ssh2
+Sep 17 05:00:20 web01 sshd[8005]: Invalid user test from 203.0.113.77 port 41001
+Sep 17 05:00:21 web01 sshd[6146]: Failed password for invalid user test from 203.0.113.77 port 41001 ssh2
+Sep 17 05:00:40 web01 sshd[8628]: Invalid user oracle from 203.0.113.77 port 41002
+Sep 17 05:00:41 web01 sshd[8424]: Failed password for invalid user oracle from 203.0.113.77 port 41002 ssh2
+Sep 17 05:01:00 web01 sshd[6924]: Invalid user ubuntu from 203.0.113.77 port 41003
+Sep 17 05:01:01 web01 sshd[5911]: Failed password for invalid user ubuntu from 203.0.113.77 port 41003 ssh2
+Sep 17 05:01:20 web01 sshd[5070]: Invalid user git from 203.0.113.77 port 41004
+Sep 17 05:01:21 web01 sshd[3945]: Failed password for invalid user git from 203.0.113.77 port 41004 ssh2
+Sep 17 05:01:40 web01 sshd[4999]: Invalid user postgres from 203.0.113.77 port 41005
+Sep 17 05:01:41 web01 sshd[2341]: Failed password for invalid user postgres from 203.0.113.77 port 41005 ssh2
+Sep 17 05:02:00 web01 sshd[5919]: Invalid user pi from 203.0.113.77 port 41006
+Sep 17 05:02:01 web01 sshd[9604]: Failed password for invalid user pi from 203.0.113.77 port 41006 ssh2
+Sep 17 05:02:20 web01 sshd[9111]: Invalid user guest from 203.0.113.77 port 41007
+Sep 17 05:02:21 web01 sshd[6627]: Failed password for invalid user guest from 203.0.113.77 port 41007 ssh2
+Sep 17 09:00:00 web01 sshd[3471]: Accepted publickey for deploy from 192.0.2.10 port 50122 ssh2: ED25519 SHA256:abc
+Sep 17 11:00:00 web01 sshd[8353]: Failed password for alice from 2001:db8::42 port 42000 ssh2
+Sep 17 11:00:10 web01 sshd[5717]: Failed password for alice from 2001:db8::42 port 42001 ssh2
+Sep 17 11:00:20 web01 sshd[2199]: Failed password for alice from 2001:db8::42 port 42002 ssh2
+Sep 17 11:00:30 web01 sshd[2934]: Failed password for alice from 2001:db8::42 port 42003 ssh2
+Sep 17 11:00:40 web01 sshd[9387]: Failed password for alice from 2001:db8::42 port 42004 ssh2
+Sep 17 11:00:50 web01 sshd[7850]: Failed password for alice from 2001:db8::42 port 42005 ssh2
+Sep 17 11:01:00 web01 sshd[3702]: Failed password for alice from 2001:db8::42 port 42006 ssh2
+Sep 17 11:01:20 web01 sshd[6604]: Accepted password for alice from 2001:db8::42 port 42010 ssh2
+Sep 17 14:00:00 web01 sshd[7468]: Accepted publickey for deploy from 192.0.2.10 port 50122 ssh2: ED25519 SHA256:abc
+Sep 17 16:00:00 web01 sshd[3490]: Failed password for umer from 192.0.2.55 port 43000 ssh2
+Sep 17 16:00:00 web01 sshd[1642]: pam_unix(sshd:session): session opened for user umer
+Sep 17 16:00:05 web01 sshd[9011]: Failed password for umer from 192.0.2.55 port 43000 ssh2
+Sep 17 16:00:15 web01 sshd[7909]: Accepted password for umer from 192.0.2.55 port 43001 ssh2`;
+
+    const MONTHS = { Jan:1, Feb:2, Mar:3, Apr:4, May:5, Jun:6, Jul:7, Aug:8, Sep:9, Oct:10, Nov:11, Dec:12 };
+    const SYSLOG = /^([A-Z][a-z]{2}\s+\d{1,2}\s\d{2}:\d{2}:\d{2})\s+(\S+)\s+sshd\[\d+\]:\s+(.*)$/;
+    const ISO = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\s+(\S+)\s+sshd\[\d+\]:\s+(.*)$/;
+    const FAILED = /^Failed (?:password|publickey) for (?:invalid user )?(\S*) from ([0-9a-fA-F:.]+)/;
+    const INVALID = /^Invalid user (\S*) from ([0-9a-fA-F:.]+)/;
+    const SUCCESS = /^Accepted (?:password|publickey|keyboard-interactive\/pam) for (\S+) from ([0-9a-fA-F:.]+)/;
+
+    function parseSyslogTs(raw, year) {
+      // "Sep 17 03:00:00"
+      const m = raw.match(/^([A-Z][a-z]{2})\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+      if (!m) return null;
+      const month = MONTHS[m[1]];
+      if (!month) return null;
+      return new Date(year, month - 1, +m[2], +m[3], +m[4], +m[5]);
+    }
+
+    function parseLine(line, year) {
+      line = line.replace(/\n$/, '');
+      let m = line.match(SYSLOG) || line.match(ISO);
+      if (!m) return null;
+      const tsRaw = m[1], host = m[2], msg = m[3];
+      let ts;
+      if (!/^\d/.test(tsRaw)) {
+        ts = parseSyslogTs(tsRaw.replace(/\s+/g, ' ').trim(), year);
+      } else {
+        ts = new Date(tsRaw);
+      }
+      if (!ts || isNaN(ts.getTime())) return null;
+
+      let p = msg.match(FAILED);
+      if (p) return { timestamp: ts, host, kind: 'failed', user: p[1] || '?', ip: p[2] };
+      p = msg.match(INVALID);
+      if (p) return { timestamp: ts, host, kind: 'invalid_user', user: p[1] || '?', ip: p[2] };
+      p = msg.match(SUCCESS);
+      if (p) return { timestamp: ts, host, kind: 'success', user: p[1], ip: p[2] };
+      return null;
+    }
+
+    function parseLines(text, year) {
+      const events = [];
+      let currentYear = year;
+      let lastMonth = null;
+      for (const raw of text.split('\n')) {
+        if (!raw.trim()) continue;
+        let ev = parseLine(raw, currentYear);
+        if (!ev) continue;
+        if (lastMonth === 12 && ev.timestamp.getMonth() === 0 && !/^\d/.test(raw)) {
+          currentYear += 1;
+          ev = parseLine(raw, currentYear);
+          if (!ev) continue;
+        }
+        lastMonth = ev.timestamp.getMonth() + 1;
+        events.push(ev);
+      }
+      return events;
+    }
+
+    function detect(events, cfg) {
+      const windowMs = cfg.windowMin * 60 * 1000;
+      const windows = new Map();
+      const alerts = new Map();
+      const totalFailures = new Map();
+      const recentInvalid = new Map();
+      const sameAttemptMs = 5000;
+
+      function raiseAlert(ip, rule, severity, windowEvents, detail) {
+        const users = [...new Set(windowEvents.map(e => e.user))].sort();
+        const key = ip + '|' + rule;
+        const existing = alerts.get(key);
+        if (!existing) {
+          alerts.set(key, {
+            ip, rule, severity,
+            first_seen: windowEvents[0].timestamp,
+            last_seen: windowEvents[windowEvents.length - 1].timestamp,
+            failures: windowEvents.length,
+            users, detail, at: windowEvents[windowEvents.length - 1].timestamp
+          });
+        } else {
+          existing.last_seen = windowEvents[windowEvents.length - 1].timestamp;
+          existing.failures = Math.max(existing.failures, windowEvents.length);
+          existing.users = [...new Set([...existing.users, ...users])].sort();
+          existing.detail = detail;
+          existing.at = existing.last_seen;
+        }
+      }
+
+      const sorted = [...events].sort((a, b) => a.timestamp - b.timestamp);
+      for (const event of sorted) {
+        if (!windows.has(event.ip)) windows.set(event.ip, []);
+        const win = windows.get(event.ip);
+
+        if (event.kind === 'success') {
+          const failures = win.filter(e => event.timestamp - e.timestamp <= windowMs);
+          if (failures.length >= Math.floor(cfg.threshold / 2) && failures.length > 0) {
+            raiseAlert(event.ip, 'success_after_failures', 'critical', failures.concat([event]),
+              `login as '${event.user}' succeeded after ${failures.length} failures: investigate this account now`);
+          }
+          win.length = 0;
+          continue;
+        }
+
+        const key = event.ip + '|' + event.user;
+        if (event.kind === 'invalid_user') {
+          recentInvalid.set(key, event.timestamp);
+        } else if (recentInvalid.has(key) && event.timestamp - recentInvalid.get(key) <= sameAttemptMs) {
+          recentInvalid.delete(key);
+          continue;
+        } else if (recentInvalid.has(key)) {
+          recentInvalid.delete(key);
+        }
+
+        totalFailures.set(event.ip, (totalFailures.get(event.ip) || 0) + 1);
+        win.push(event);
+        while (win.length && event.timestamp - win[0].timestamp > windowMs) win.shift();
+
+        if (win.length >= cfg.threshold) {
+          raiseAlert(event.ip, 'brute_force', 'high', [...win],
+            `${win.length} failed logins within ${cfg.windowMin}:00:00`);
+        }
+        const distinct = new Set(win.map(e => e.user));
+        if (distinct.size >= cfg.spray) {
+          raiseAlert(event.ip, 'password_spray', 'medium', [...win],
+            `${distinct.size} different usernames within ${cfg.windowMin}:00:00`);
+        }
+      }
+
+      for (const alert of alerts.values()) {
+        alert.detail += ` (${totalFailures.get(alert.ip) || 0} failures from this IP in total)`;
+      }
+      const order = { critical: 0, high: 1, medium: 2 };
+      return [...alerts.values()].sort((a, b) =>
+        order[a.severity] - order[b.severity] || b.failures - a.failures || a.ip.localeCompare(b.ip));
+    }
+
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const fmtTime = d => d.toTimeString().slice(0, 8);
+    const fmtRange = (a, b) => {
+      const day = a.toISOString().slice(0, 10);
+      const sameDay = a.toDateString() === b.toDateString();
+      return day + ' ' + fmtTime(a) + (sameDay ? ' → ' + fmtTime(b) : ' → ' + b.toISOString().slice(0, 10) + ' ' + fmtTime(b));
+    };
+
+    function run() {
+      const text = $('logInput').value;
+      const year = +$('year').value || 2026;
+      const cfg = {
+        threshold: Math.max(1, +$('threshold').value || 10),
+        spray: Math.max(1, +$('spray').value || 5),
+        windowMin: Math.max(1, +$('windowMin').value || 10)
+      };
+      const events = parseLines(text, year);
+      const alerts = detect(events, cfg);
+
+      const failed = events.filter(e => e.kind === 'failed').length;
+      const invalid = events.filter(e => e.kind === 'invalid_user').length;
+      const success = events.filter(e => e.kind === 'success').length;
+      $('statParsed').textContent = events.length;
+      $('statFailed').textContent = failed;
+      $('statInvalid').textContent = invalid;
+      $('statSuccess').textContent = success;
+      $('statAlerts').textContent = alerts.length;
+
+      const box = $('alerts');
+      if (alerts.length === 0) {
+        box.innerHTML = '<p class="ok-note">No alerts. Nothing crossed the thresholds with these settings.</p>';
+      } else {
+        box.innerHTML = alerts.map(a => `
+          <div class="alert ${a.severity}">
+            <div class="alert-head">
+              <span class="sev ${a.severity}">${a.severity}</span>
+              <span class="rule">${esc(a.rule)}</span>
+              <span class="mono">${esc(a.ip)}</span>
+              <span class="muted" style="font-weight:500;font-size:13px">${a.failures} tries</span>
+            </div>
+            <div class="alert-meta">
+              <div><b>Window:</b> <span class="mono">${esc(fmtRange(a.first_seen, a.last_seen))}</span></div>
+              <div><b>Users:</b> <span class="mono">${esc(a.users.join(', '))}</span></div>
+              <div>${esc(a.detail)}</div>
+            </div>
+          </div>`).join('');
+      }
+
+      // Timeline: all events + alert markers
+      const alertAt = new Map();
+      for (const a of alerts) {
+        const k = a.at.getTime();
+        if (!alertAt.has(k)) alertAt.set(k, []);
+        alertAt.get(k).push(a);
+      }
+      const rows = [];
+      for (const e of events) {
+        const cls = e.kind === 'success' ? 'ok' : 'fail';
+        const label = e.kind === 'success' ? 'success' : (e.kind === 'invalid_user' ? 'invalid user' : 'failure');
+        rows.push({ t: e.timestamp, html: `
+          <div class="tl-row">
+            <div class="tl-time">${esc(fmtTime(e.timestamp))}</div>
+            <div class="tl-body ${cls}">
+              <div class="tl-label">${esc(label)} · <span class="mono">${esc(e.ip)}</span> → ${esc(e.user)}</div>
+            </div>
+          </div>` });
+        if (alertAt.has(e.timestamp.getTime())) {
+          for (const a of alertAt.get(e.timestamp.getTime())) {
+            rows.push({ t: e.timestamp, html: `
+              <div class="tl-row">
+                <div class="tl-time">${esc(fmtTime(e.timestamp))}</div>
+                <div class="tl-body alert">
+                  <div class="tl-label">⚠ ${esc(a.rule)} (${a.severity}) — ${a.failures} tries from <span class="mono">${esc(a.ip)}</span></div>
+                </div>
+              </div>` });
+          }
+        }
+      }
+      rows.sort((a, b) => a.t - b.t);
+      $('timeline').innerHTML = rows.length
+        ? rows.map(r => r.html).join('')
+        : '<p class="muted">No parseable events.</p>';
+    }
+
+    $('loadSample').addEventListener('click', () => { $('logInput').value = SAMPLE; run(); });
+    $('loadTiny').addEventListener('click', () => {
+      const lines = SAMPLE.split('\n').filter(l => l.includes('198.51.100.23'));
+      $('logInput').value = lines.join('\n'); run();
+    });
+    $('loadSpray').addEventListener('click', () => {
+      const lines = SAMPLE.split('\n').filter(l => l.includes('203.0.113.77'));
+      $('logInput').value = lines.join('\n'); run();
+    });
+    $('loadClean').addEventListener('click', () => {
+      $('logInput').value = [
+        'Sep 17 02:00:00 web01 sshd[6305]: Accepted publickey for deploy from 192.0.2.10 port 50122 ssh2',
+        'Sep 17 09:00:00 web01 sshd[3471]: Accepted publickey for deploy from 192.0.2.10 port 50122 ssh2',
+        'Sep 17 16:00:15 web01 sshd[7909]: Accepted password for umer from 192.0.2.55 port 43001 ssh2'
+      ].join('\n'); run();
+    });
+    $('runBtn').addEventListener('click', run);
+    $('logInput').addEventListener('input', () => {});
+    ['threshold', 'spray', 'windowMin', 'year'].forEach(id => $(id).addEventListener('change', run));
+
+    $('logInput').value = SAMPLE;
+    run();
+  </script>
+</body>
+</html>
