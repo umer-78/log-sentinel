@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>logsentinel — SSH Brute-Force Detector Demo</title>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="logsentinel — SSH Brute-Force Detector Demo">
+  <meta property="og:description" content="Paste auth.log lines and watch sliding-window rules catch brute-force, spray and success-after-failures attacks — entirely in your browser.">
+  <meta property="og:url" content="https://umer-78.github.io/log-sentinel/">
+  <meta name="twitter:card" content="summary">
   <meta name="description" content="Paste auth.log lines and watch sliding-window rules catch brute-force, spray and success-after-failures attacks — entirely in your browser.">
   <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0a0c10" media="(prefers-color-scheme: dark)">
@@ -432,7 +437,7 @@
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin:0">
           speed <select id="simSpeed" style="width:auto;padding:6px 10px"><option value="400">fast</option><option value="800" selected>normal</option><option value="1500">slow</option></select>
         </label>
-        <span class="sim-status off" id="simStatus">stopped</span>
+        <span class="sim-status off" id="simStatus" aria-live="polite">stopped</span>
       </div>
       <div class="sim-log" id="simLog" aria-live="polite">Simulation idle — press Start.</div>
     </section>
