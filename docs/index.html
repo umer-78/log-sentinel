@@ -305,9 +305,22 @@
       .stats { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
       .tl-row { grid-template-columns: 58px 1fr; }
     }
-  </style>
+  
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <main id="main">
+
   <div class="wrap">
     <header class="top">
       <div class="brand">
@@ -1200,5 +1213,7 @@ Sep 17 16:00:15 web01 sshd[7909]: Accepted password for umer from 192.0.2.55 por
     // re-run hooked version once for initial rich render
     run();
   </script>
-</body>
+
+  </main>
+  </body>
 </html>
