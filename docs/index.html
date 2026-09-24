@@ -206,6 +206,98 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+    /* ATT&CK mapping */
+    .attack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 12px; }
+    .attack-card {
+      border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
+      background: var(--surface); transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+      animation: slideIn 0.35s var(--ease) both;
+    }
+    .attack-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--accent); }
+    .attack-card .a-id { font-family: var(--mono); font-size: 12px; font-weight: 800; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 99px; display: inline-block; }
+    .attack-card .a-name { font-weight: 700; font-size: 14px; margin-top: 6px; }
+    .attack-card .a-tactic { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .attack-card .a-hits { font-size: 12px; color: var(--bad); font-weight: 700; margin-top: 6px; }
+    /* IP classification */
+    .ip-class { display: grid; gap: 8px; margin-top: 12px; }
+    .ip-row {
+      display: grid; grid-template-columns: 150px 1fr auto; gap: 10px; align-items: center;
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+      background: var(--surface); font-size: 13.5px;
+      transition: transform 0.2s var(--ease);
+      animation: slideIn 0.3s var(--ease) both;
+    }
+    .ip-row:hover { transform: translateX(4px); }
+    .ip-row .ip-addr { font-family: var(--mono); font-weight: 700; word-break: break-all; }
+    .ip-row .ip-meta { color: var(--muted); font-size: 12.5px; }
+    .ip-tag { font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .ip-tag.private { background: var(--accent-soft); color: var(--accent); }
+    .ip-tag.loopback { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+    .ip-tag.doc { background: var(--warn-soft); color: var(--warn); }
+    .ip-tag.tor { background: var(--bad-soft); color: var(--bad); }
+    .ip-tag.public { background: var(--good-soft); color: var(--good); }
+    .ip-tag.reserved { background: var(--surface-2); color: var(--muted); }
+    /* severity scoring */
+    .sev-breakdown { display: grid; gap: 8px; margin-top: 12px; }
+    .sev-item {
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+      padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--surface); animation: slideIn 0.3s var(--ease) both;
+    }
+    .sev-item .sev-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 700; font-size: 14px; }
+    .sev-item .sev-reasons { margin-top: 4px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+    .sev-item .sev-score {
+      font-family: var(--mono); font-size: 24px; font-weight: 800; text-align: right;
+      min-width: 56px; font-variant-numeric: tabular-nums;
+    }
+    .sev-item .sev-score.s0 { color: var(--good); }
+    .sev-item .sev-score.s1 { color: var(--warn); }
+    .sev-item .sev-score.s2 { color: var(--bad); }
+    .sev-meter { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-top: 6px; grid-column: 1 / -1; }
+    .sev-meter i { display: block; height: 100%; border-radius: 99px; transition: width 0.7s var(--ease); }
+    /* live sim */
+    .sim-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+    .sim-log {
+      font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; margin-top: 10px; max-height: 220px; overflow: auto;
+      white-space: pre-wrap; word-break: break-all; color: var(--text-secondary);
+    }
+    .sim-log .line-new { animation: slideIn 0.3s var(--ease) both; display: block; }
+    .sim-status { font-size: 13px; font-weight: 600; margin-top: 8px; }
+    .sim-status.on { color: var(--good); }
+    .sim-status.off { color: var(--muted); }
+    /* export */
+    .export-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+    /* threat timeline viz */
+    .threat-viz { position: relative; margin-top: 14px; padding: 14px 0 6px; overflow-x: auto; }
+    .threat-track { display: flex; gap: 4px; align-items: flex-end; min-height: 80px; padding-bottom: 8px; position: relative; border-bottom: 2px solid var(--border); }
+    .threat-bar {
+      flex: 1; min-width: 14px; max-width: 48px; border-radius: 6px 6px 0 0;
+      background: linear-gradient(180deg, var(--bad), color-mix(in srgb, var(--bad) 50%, var(--warn)));
+      transition: height 0.5s var(--ease), transform 0.2s var(--ease);
+      position: relative; cursor: default;
+      animation: growUp 0.5s var(--ease) both;
+      transform-origin: bottom;
+    }
+    .threat-bar:hover { transform: scaleY(1.06); filter: brightness(1.15); }
+    .threat-bar.critical { background: linear-gradient(180deg, #991b1b, var(--bad)); }
+    .threat-bar.high { background: linear-gradient(180deg, var(--bad), #f97316); }
+    .threat-bar.medium { background: linear-gradient(180deg, var(--warn), #f59e0b); }
+    .threat-bar .bar-tip {
+      position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+      font-size: 10px; font-family: var(--mono); color: var(--muted); white-space: nowrap;
+      margin-bottom: 2px; opacity: 0; transition: opacity 0.2s;
+    }
+    .threat-bar:hover .bar-tip { opacity: 1; }
+    @keyframes growUp { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    .threat-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 6px; }
+    .threat-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+    .threat-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+    /* animated alert */
+    @keyframes alertFlash { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 50%, transparent); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+    .alert.critical { animation: slideIn 0.35s var(--ease) both, alertFlash 1.2s var(--ease) 0.3s; }
+    .alert.high { animation: slideIn 0.35s var(--ease) both, alertFlash 1.4s var(--ease) 0.4s; }
     @media (max-width: 480px) {
       header.top h1 { font-size: 19px; }
       .stat .v { font-size: 20px; }
@@ -285,6 +377,62 @@
       <h2><span class="num">4</span> Timeline</h2>
       <p class="muted" style="margin-top:0">Events and alerts in chronological order. Red = failure, green = success, amber ring = alert raised.</p>
       <div class="timeline" id="timeline"></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">5</span> Threat timeline visualization</h2>
+      <p class="muted" style="margin-top:0">Failures bucketed over the log window — bar height = failure count, color = highest severity of alerts in that bucket.</p>
+      <div class="threat-viz" id="threatViz" aria-label="Threat timeline chart"></div>
+      <div class="threat-legend">
+        <span><i style="background:linear-gradient(180deg,#991b1b,var(--bad))"></i> critical</span>
+        <span><i style="background:linear-gradient(180deg,var(--bad),#f97316)"></i> high</span>
+        <span><i style="background:linear-gradient(180deg,var(--warn),#f59e0b)"></i> medium</span>
+        <span>hover a bar for details</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">6</span> MITRE ATT&amp;CK technique mapping</h2>
+      <p class="muted" style="margin-top:0">Alerts mapped to Enterprise ATT&amp;CK techniques. Counts update with each Detect run.</p>
+      <div class="attack-grid" id="attackGrid" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">7</span> Source IP classification</h2>
+      <p class="muted" style="margin-top:0">RFC-aware classification only — private, loopback, link-local, documentation (TEST-NET), multicast/reserved, or public. Well-known Tor exit nodes are checked against a small embedded list; no fake geolocation.</p>
+      <div class="ip-class" id="ipClass" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">8</span> Severity scoring breakdown</h2>
+      <p class="muted" style="margin-top:0">Each alert gets a 0–100 score from weighted factors: rule base severity, failure volume, distinct users, success-after-failures, and source classification.</p>
+      <div class="sev-breakdown" id="sevBreakdown" aria-live="polite"></div>
+      <div class="result-box" id="sevFormula" style="margin-top:12px">score = base + volume + spray + critical-boost + source-adjustment</div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">9</span> Live attack simulation</h2>
+      <p class="muted" style="margin-top:0">Generates synthetic auth.log lines (brute force / spray / success-after-failures) and feeds them to the real detector in real time. Watch alerts appear as the stream runs.</p>
+      <div class="sim-controls">
+        <button class="primary" id="simToggle" type="button">▶ Start simulation</button>
+        <button id="simScenario" type="button">Scenario: brute force</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin:0">
+          speed <select id="simSpeed" style="width:auto;padding:6px 10px"><option value="400">fast</option><option value="800" selected>normal</option><option value="1500">slow</option></select>
+        </label>
+        <span class="sim-status off" id="simStatus">stopped</span>
+      </div>
+      <div class="sim-log" id="simLog" aria-live="polite">Simulation idle — press Start.</div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">10</span> Export findings</h2>
+      <p class="muted" style="margin-top:0">Download current alerts as JSON (SAROM-like schema) or copy to clipboard for pasting into a ticket / SIEM.</p>
+      <div class="export-row">
+        <button class="primary" id="exportJson" type="button">⬇ Export JSON</button>
+        <button id="exportCopy" type="button">📋 Copy JSON</button>
+        <span class="muted" style="font-size:13px" id="exportMsg"></span>
+      </div>
+      <div class="result-box" id="exportPreview" style="max-height:200px;overflow:auto">Run Detect, then export.</div>
     </section>
 
     <div class="grid two">
@@ -632,6 +780,424 @@ Sep 17 16:00:15 web01 sshd[7909]: Accepted password for umer from 192.0.2.55 por
     ['threshold', 'spray', 'windowMin', 'year'].forEach(id => $(id).addEventListener('change', run));
 
     $('logInput').value = SAMPLE;
+    run();
+
+    // ============================================================
+    // ADVANCED FEATURES
+    // ============================================================
+
+    let lastRun = { events: [], alerts: [], cfg: null };
+
+    // Capture results from detect runs by wrapping run()
+    const _origRun = run;
+    run = function() {
+      _origRun();
+      try {
+        const text = $('logInput').value;
+        const year = +$('year').value || 2026;
+        const cfg = {
+          threshold: Math.max(1, +$('threshold').value || 10),
+          spray: Math.max(1, +$('spray').value || 5),
+          windowMin: Math.max(1, +$('windowMin').value || 10)
+        };
+        const events = parseLines(text, year);
+        const alerts = detect(events, cfg);
+        lastRun = { events, alerts, cfg };
+        renderThreatViz(events, alerts);
+        renderAttackMap(alerts);
+        renderIpClass(events, alerts);
+        renderSeverity(alerts);
+        renderExportPreview();
+      } catch (e) { /* keep UI stable */ }
+    };
+
+    // ---- Threat timeline visualization ----
+    function renderThreatViz(events, alerts) {
+      const viz = $('threatViz');
+      if (!events.length) { viz.innerHTML = '<p class="muted">No events to chart.</p>'; return; }
+      const times = events.map(e => e.timestamp.getTime());
+      const minT = Math.min(...times), maxT = Math.max(...times);
+      const span = Math.max(1, maxT - minT);
+      const BUCKETS = 24;
+      const buckets = Array.from({ length: BUCKETS }, (_, i) => ({
+        i, start: minT + (span * i) / BUCKETS, end: minT + (span * (i + 1)) / BUCKETS,
+        failures: 0, successes: 0, severity: null
+      }));
+      for (const e of events) {
+        const idx = Math.min(BUCKETS - 1, Math.max(0, Math.floor(((e.timestamp.getTime() - minT) / span) * BUCKETS)));
+        if (e.kind === 'failed' || e.kind === 'invalid_user') buckets[idx].failures++;
+        else if (e.kind === 'success') buckets[idx].successes++;
+      }
+      const sevRank = { critical: 3, high: 2, medium: 1 };
+      for (const a of alerts) {
+        const t = a.at ? a.at.getTime() : a.last_seen.getTime();
+        const idx = Math.min(BUCKETS - 1, Math.max(0, Math.floor(((t - minT) / span) * BUCKETS)));
+        if (!buckets[idx].severity || sevRank[a.severity] > sevRank[buckets[idx].severity]) {
+          buckets[idx].severity = a.severity;
+        }
+      }
+      const maxF = Math.max(1, ...buckets.map(b => b.failures));
+      const track = buckets.map((b, i) => {
+        const h = b.failures === 0 ? 4 : Math.max(8, Math.round((b.failures / maxF) * 72));
+        const cls = b.severity || (b.failures > 0 ? 'high' : 'medium');
+        const tip = `${fmtTime(new Date(b.start))} · ${b.failures} fail${b.severity ? ' · ' + b.severity : ''}`;
+        return `<div class="threat-bar ${b.failures ? cls : ''}" style="height:${h}px;animation-delay:${i * 0.03}s" title="${esc(tip)}">
+          <span class="bar-tip">${b.failures}</span>
+        </div>`;
+      }).join('');
+      viz.innerHTML = `
+        <div class="threat-track">${track}</div>
+        <div class="threat-axis"><span>${esc(fmtTime(new Date(minT)))}</span><span>${esc(fmtTime(new Date(maxT)))}</span></div>`;
+    }
+
+    // ---- ATT&CK mapping ----
+    const ATTACK_TECHNIQUES = [
+      { id: 'T1110', name: 'Brute Force', tactic: 'Credential Access', match: a => a.rule === 'brute_force' },
+      { id: 'T1110.001', name: 'Password Guessing', tactic: 'Credential Access · Brute Force', match: a => a.rule === 'brute_force' && a.users.length === 1 },
+      { id: 'T1110.003', name: 'Password Spraying', tactic: 'Credential Access · Brute Force', match: a => a.rule === 'password_spray' },
+      { id: 'T1110.004', name: 'Credential Stuffing', tactic: 'Credential Access · Brute Force', match: a => a.rule === 'brute_force' && a.failures >= 20 },
+      { id: 'T1078', name: 'Valid Accounts', tactic: 'Defense Evasion · Persistence · Initial Access', match: a => a.rule === 'success_after_failures' },
+      { id: 'T1110.002', name: 'Password Cracking', tactic: 'Credential Access · Brute Force', match: a => a.rule === 'success_after_failures' },
+      { id: 'T1046', name: 'Network Service Discovery', tactic: 'Discovery', match: a => a.rule === 'password_spray' && a.users.length >= 8 },
+      { id: 'T1595', name: 'Active Scanning', tactic: 'Reconnaissance', match: a => a.rule === 'password_spray' && a.users.some(u => ['admin', 'test', 'oracle', 'git'].includes(u)) }
+    ];
+
+    function renderAttackMap(alerts) {
+      const grid = $('attackGrid');
+      const mapped = ATTACK_TECHNIQUES.map(t => ({ ...t, hits: alerts.filter(t.match) }))
+        .filter(t => t.hits.length > 0);
+      if (!mapped.length) {
+        grid.innerHTML = '<p class="muted" style="grid-column:1/-1;margin:0">No techniques mapped — no alerts yet. Run Detect on a log with attacks.</p>';
+        return;
+      }
+      grid.innerHTML = mapped.map((t, i) => `
+        <div class="attack-card" style="animation-delay:${i * 0.05}s">
+          <span class="a-id">${esc(t.id)}</span>
+          <div class="a-name">${esc(t.name)}</div>
+          <div class="a-tactic">${esc(t.tactic)}</div>
+          <div class="a-hits">${t.hits.length} alert${t.hits.length === 1 ? '' : 's'} · ${esc([...new Set(t.hits.map(h => h.ip))].join(', '))}</div>
+        </div>`).join('');
+    }
+
+    // ---- IP classification ----
+    const TOR_EXITS = new Set([
+      // small embedded sample of well-known Tor exit IPs (documentation-safe placeholders + real ranges note)
+      '198.51.100.99', '203.0.113.66', '185.220.101.1', '185.220.101.2',
+      '199.249.230.85', '109.70.100.1'
+    ]);
+
+    function classifyIp(ip) {
+      if (!ip) return { tag: 'reserved', label: 'unknown', note: 'no address' };
+      // IPv6
+      if (ip.includes(':')) {
+        const lower = ip.toLowerCase();
+        if (lower === '::1') return { tag: 'loopback', label: 'loopback', note: 'IPv6 loopback' };
+        if (lower.startsWith('fe80:')) return { tag: 'private', label: 'link-local', note: 'IPv6 link-local (fe80::/10)' };
+        if (lower.startsWith('fc') || lower.startsWith('fd')) return { tag: 'private', label: 'unique local', note: 'IPv6 unique local (fc00::/7)' };
+        if (lower.startsWith('2001:db8:')) return { tag: 'doc', label: 'documentation', note: 'IPv6 documentation range (2001:db8::/32)' };
+        if (lower.startsWith('ff')) return { tag: 'reserved', label: 'multicast', note: 'IPv6 multicast' };
+        if (TOR_EXITS.has(lower)) return { tag: 'tor', label: 'tor exit', note: 'known Tor exit node (embedded list)' };
+        return { tag: 'public', label: 'public', note: 'globally routable IPv6' };
+      }
+      // IPv4
+      const parts = ip.split('.').map(Number);
+      if (parts.length !== 4 || parts.some(n => Number.isNaN(n) || n < 0 || n > 255)) {
+        return { tag: 'reserved', label: 'invalid', note: 'malformed address' };
+      }
+      const [a, b] = parts;
+      if (a === 127) return { tag: 'loopback', label: 'loopback', note: '127.0.0.0/8' };
+      if (a === 10) return { tag: 'private', label: 'private', note: 'RFC1918 10.0.0.0/8' };
+      if (a === 172 && b >= 16 && b <= 31) return { tag: 'private', label: 'private', note: 'RFC1918 172.16.0.0/12' };
+      if (a === 192 && b === 168) return { tag: 'private', label: 'private', note: 'RFC1918 192.168.0.0/16' };
+      if (a === 169 && b === 254) return { tag: 'private', label: 'link-local', note: '169.254.0.0/16' };
+      if (a === 0) return { tag: 'reserved', label: 'reserved', note: '0.0.0.0/8' };
+      if (a === 100 && b >= 64 && b <= 127) return { tag: 'private', label: 'CGNAT', note: '100.64.0.0/10' };
+      // TEST-NET documentation ranges
+      if (a === 192 && b === 0 && parts[2] === 2) return { tag: 'doc', label: 'documentation', note: 'TEST-NET-1 192.0.2.0/24' };
+      if (a === 198 && b === 51 && parts[2] === 100) return { tag: 'doc', label: 'documentation', note: 'TEST-NET-2 198.51.100.0/24' };
+      if (a === 203 && b === 0 && parts[2] === 113) return { tag: 'doc', label: 'documentation', note: 'TEST-NET-3 203.0.113.0/24' };
+      if (a >= 224 && a <= 239) return { tag: 'reserved', label: 'multicast', note: '224.0.0.0/4' };
+      if (a >= 240) return { tag: 'reserved', label: 'reserved', note: '240.0.0.0/4' };
+      if (TOR_EXITS.has(ip)) return { tag: 'tor', label: 'tor exit', note: 'known Tor exit node (embedded list)' };
+      return { tag: 'public', label: 'public', note: 'globally routable unicast' };
+    }
+
+    function renderIpClass(events, alerts) {
+      const box = $('ipClass');
+      const ipStats = new Map();
+      for (const e of events) {
+        if (!ipStats.has(e.ip)) ipStats.set(e.ip, { ip: e.ip, fails: 0, success: 0, invalid: 0, users: new Set() });
+        const s = ipStats.get(e.ip);
+        if (e.kind === 'failed') s.fails++;
+        else if (e.kind === 'success') s.success++;
+        else if (e.kind === 'invalid_user') s.invalid++;
+        s.users.add(e.user);
+      }
+      const alertIps = new Set(alerts.map(a => a.ip));
+      const rows = [...ipStats.values()].sort((a, b) => (b.fails + b.invalid) - (a.fails + a.invalid));
+      if (!rows.length) { box.innerHTML = '<p class="muted" style="margin:0">No IPs parsed.</p>'; return; }
+      box.innerHTML = rows.map((r, i) => {
+        const c = classifyIp(r.ip);
+        const flagged = alertIps.has(r.ip);
+        return `<div class="ip-row" style="animation-delay:${i * 0.04}s">
+          <span class="ip-addr">${esc(r.ip)}</span>
+          <span class="ip-meta">${r.fails + r.invalid} fail · ${r.success} ok · ${r.users.size} user(s)${flagged ? ' · <b style="color:var(--bad)">alerted</b>' : ''}<br>${esc(c.note)}</span>
+          <span class="ip-tag ${c.tag}">${esc(c.label)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    // ---- Severity scoring ----
+    const RULE_BASE = { critical: 55, high: 40, medium: 25 };
+    const SOURCE_MOD = { tor: 15, public: 8, doc: 2, private: -5, loopback: -8, reserved: 0, unknown: 0 };
+
+    function scoreAlert(alert, events) {
+      const reasons = [];
+      let score = RULE_BASE[alert.severity] || 20;
+      reasons.push(`rule base (${alert.severity}): +${RULE_BASE[alert.severity] || 20}`);
+
+      // volume component: up to +25
+      const vol = Math.min(25, Math.round((alert.failures / 50) * 25));
+      if (vol > 0) { score += vol; reasons.push(`failure volume (${alert.failures}): +${vol}`); }
+
+      // spray component
+      if (alert.rule === 'password_spray' || alert.users.length >= 5) {
+        const spr = Math.min(15, alert.users.length * 2);
+        score += spr; reasons.push(`distinct users (${alert.users.length}): +${spr}`);
+      }
+
+      // success after failures is already critical base
+      if (alert.rule === 'success_after_failures') {
+        score += 10; reasons.push('credential compromise indicator: +10');
+      }
+
+      // source classification
+      const cls = classifyIp(alert.ip);
+      const mod = SOURCE_MOD[cls.tag] ?? 0;
+      score += mod;
+      reasons.push(`source ${cls.label}: ${mod >= 0 ? '+' : ''}${mod}`);
+
+      score = Math.max(0, Math.min(100, score));
+      return { score: Math.round(score), reasons, cls };
+    }
+
+    function renderSeverity(alerts) {
+      const box = $('sevBreakdown');
+      if (!alerts.length) {
+        box.innerHTML = '<p class="muted" style="margin:0">No alerts to score.</p>';
+        $('sevFormula').textContent = 'score = base + volume + spray + critical-boost + source-adjustment (clamped 0–100)';
+        return;
+      }
+      const scored = alerts.map(a => ({ alert: a, ...scoreScored(a) }));
+      function scoreScored(a) { return scoreAlert(a, lastRun.events); }
+      // fix: scoreAlert doesn't need events param usage
+      box.innerHTML = scored.map((s, i) => {
+        const a = s.alert;
+        const level = s.score >= 70 ? 2 : s.score >= 40 ? 1 : 0;
+        const color = level === 2 ? 'var(--bad)' : level === 1 ? 'var(--warn)' : 'var(--good)';
+        return `<div class="sev-item" style="animation-delay:${i * 0.05}s">
+          <div>
+            <div class="sev-head"><span class="sev ${a.severity}">${a.severity}</span> <span class="mono">${esc(a.ip)}</span> <span class="muted" style="font-weight:500;font-size:12px">${esc(a.rule)}</span></div>
+            <div class="sev-reasons">${s.reasons.map(esc).join(' · ')}</div>
+          </div>
+          <div class="sev-score s${level}">${s.score}</div>
+          <div class="sev-meter"><i style="width:${s.score}%;background:${color}"></i></div>
+        </div>`;
+      }).join('');
+      $('sevFormula').textContent =
+        'score = base(' + scored.map(s => RULE_BASE[s.alert.severity]).join('/') + ') + volume(≤25) + spray(≤15) + critical-boost(+10 if success_after_failures) + source(tor +15 / public +8 / private −5) — clamped 0–100. High ≥70, Medium 40–69, Low <40.';
+    }
+
+    // ---- Live attack simulation ----
+    const SCENARIOS = ['brute force', 'password spray', 'success after failures'];
+    let simState = { on: false, timer: null, scenario: 0, lines: [], baseTime: null };
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function fmtSyslog(d) {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2, ' ')} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function genSimLines(scenario) {
+      const now = new Date();
+      now.setMilliseconds(0);
+      const lines = [];
+      const pid = () => 1000 + Math.floor(Math.random() * 8000);
+      const port = () => 40000 + Math.floor(Math.random() * 20000);
+      const host = 'sim01';
+      if (scenario === 0) {
+        // brute force: one IP, many failures on root
+        const ip = '198.51.100.77';
+        for (let i = 0; i < 14; i++) {
+          const t = new Date(now.getTime() + i * 4000);
+          lines.push(`${fmtSyslog(t)} ${host} sshd[${pid()}]: Failed password for root from ${ip} port ${port()} ssh2`);
+        }
+      } else if (scenario === 1) {
+        const ip = '203.0.113.55';
+        const users = ['admin','test','oracle','ubuntu','git','postgres','pi','guest','user','demo'];
+        for (let i = 0; i < 16; i++) {
+          const t = new Date(now.getTime() + i * 5000);
+          const u = users[i % users.length];
+          lines.push(`${fmtSyslog(t)} ${host} sshd[${pid()}]: Invalid user ${u} from ${ip} port ${port()}`);
+          lines.push(`${fmtSyslog(new Date(t.getTime() + 1000))} ${host} sshd[${pid()}]: Failed password for invalid user ${u} from ${ip} port ${port()} ssh2`);
+        }
+      } else {
+        const ip = '192.0.2.66';
+        for (let i = 0; i < 8; i++) {
+          const t = new Date(now.getTime() + i * 4000);
+          lines.push(`${fmtSyslog(t)} ${host} sshd[${pid()}]: Failed password for alice from ${ip} port ${port()} ssh2`);
+        }
+        const ts = new Date(now.getTime() + 9 * 4000);
+        lines.push(`${fmtSyslog(ts)} ${host} sshd[${pid()}]: Accepted password for alice from ${ip} port ${port()} ssh2`);
+      }
+      return lines;
+    }
+
+    function simTick() {
+      if (!simState.on) return;
+      if (simState.idx >= simState.lines.length) {
+        stopSim(true);
+        return;
+      }
+      const line = simState.lines[simState.idx++];
+      const log = $('logInput');
+      log.value = (log.value ? log.value + '\n' : '') + line;
+      const simLog = $('simLog');
+      if (simState.idx === 1) simLog.textContent = '';
+      const span = document.createElement('span');
+      span.className = 'line-new';
+      span.textContent = line + '\n';
+      simLog.appendChild(span);
+      simLog.scrollTop = simLog.scrollHeight;
+      // re-run detector
+      run();
+      const alerts = lastRun.alerts;
+      $('simStatus').textContent = `streaming · ${simState.idx}/${simState.lines.length} lines · ${alerts.length} alert(s)`;
+      $('simStatus').className = 'sim-status on';
+    }
+
+    function startSim() {
+      const scenario = simState.scenario;
+      simState.lines = genSimLines(scenario);
+      simState.idx = 0;
+      simState.on = true;
+      $('simLog').textContent = '';
+      $('simToggle').textContent = '⏸ Stop simulation';
+      $('simStatus').textContent = 'starting…';
+      $('simStatus').className = 'sim-status on';
+      const speed = +$('simSpeed').value || 800;
+      simState.timer = setInterval(simTick, speed);
+      simTick();
+    }
+
+    function stopSim(done) {
+      simState.on = false;
+      if (simState.timer) { clearInterval(simState.timer); simState.timer = null; }
+      $('simToggle').textContent = '▶ Start simulation';
+      $('simStatus').textContent = done ? `finished · ${simState.idx} lines streamed` : 'stopped';
+      $('simStatus').className = 'sim-status off';
+    }
+
+    $('simToggle').addEventListener('click', () => { simState.on ? stopSim(false) : startSim(); });
+    $('simScenario').addEventListener('click', () => {
+      simState.scenario = (simState.scenario + 1) % SCENARIOS.length;
+      $('simScenario').textContent = 'Scenario: ' + SCENARIOS[simState.scenario];
+    });
+    $('simSpeed').addEventListener('change', () => {
+      if (simState.on) { stopSim(false); startSim(); }
+    });
+
+    // ---- Export JSON / SAROM-like ----
+    function buildExportObject() {
+      const { events, alerts, cfg } = lastRun;
+      return {
+        schema: 'sarom-like/v1',
+        tool: 'logsentinel',
+        generated_at: new Date().toISOString(),
+        config: cfg || {},
+        summary: {
+          events: events.length,
+          failed: events.filter(e => e.kind === 'failed').length,
+          invalid_users: events.filter(e => e.kind === 'invalid_user').length,
+          success: events.filter(e => e.kind === 'success').length,
+          alerts: alerts.length
+        },
+        techniques: ATTACK_TECHNIQUES
+          .map(t => ({ technique_id: t.id, name: t.name, tactic: t.tactic, alert_count: alerts.filter(t.match).length }))
+          .filter(t => t.alert_count > 0),
+        sources: [...new Set(alerts.map(a => a.ip))].map(ip => {
+          const c = classifyIp(ip);
+          return { ip, classification: c.label, note: c.note, tor: c.tag === 'tor' };
+        }),
+        findings: alerts.map(a => {
+          const sev = scoreAlert(a, events);
+          return {
+            rule: a.rule,
+            severity: a.severity,
+            score: sev.score,
+            score_reasons: sev.reasons,
+            source_ip: a.ip,
+            source_classification: sev.cls.label,
+            techniques: ATTACK_TECHNIQUES.filter(t => t.match(a)).map(t => t.id),
+            failures_in_window: a.failures,
+            users: a.users,
+            first_seen: a.first_seen.toISOString(),
+            last_seen: a.last_seen.toISOString(),
+            detail: a.detail
+          };
+        }),
+        events: events.slice(0, 500).map(e => ({
+          timestamp: e.timestamp.toISOString(),
+          host: e.host,
+          kind: e.kind,
+          user: e.user,
+          ip: e.ip
+        }))
+      };
+    }
+
+    function renderExportPreview() {
+      try {
+        const obj = buildExportObject();
+        $('exportPreview').textContent = JSON.stringify(obj, null, 2).slice(0, 4000) +
+          (JSON.stringify(obj).length > 4000 ? '\n… (truncated preview)' : '');
+      } catch (e) {
+        $('exportPreview').textContent = 'Export build error: ' + e.message;
+      }
+    }
+
+    $('exportJson').addEventListener('click', () => {
+      try {
+        const obj = buildExportObject();
+        const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'logsentinel-findings.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        $('exportMsg').textContent = '✓ Downloaded logsentinel-findings.json';
+        $('exportMsg').style.color = 'var(--good)';
+      } catch (e) {
+        $('exportMsg').textContent = 'Export failed: ' + e.message;
+        $('exportMsg').style.color = 'var(--bad)';
+      }
+    });
+
+    $('exportCopy').addEventListener('click', async () => {
+      try {
+        const obj = buildExportObject();
+        await navigator.clipboard.writeText(JSON.stringify(obj, null, 2));
+        $('exportMsg').textContent = '✓ Copied to clipboard';
+        $('exportMsg').style.color = 'var(--good)';
+      } catch (e) {
+        $('exportMsg').textContent = 'Copy failed: ' + e.message;
+        $('exportMsg').style.color = 'var(--bad)';
+      }
+    });
+
+    // re-run hooked version once for initial rich render
     run();
   </script>
 </body>
