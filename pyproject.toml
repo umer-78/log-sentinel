@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "logsentinel"
+name = "log-sentinel"
 version = "1.0.0"
-description = "Detect SSH brute-force and password-spraying attempts in Linux auth logs."
+description = "Detect SSH brute-force, password spraying and success-after-failure logins in Linux auth logs."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Umer Hashmi" }]
