@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-scene="security" data-fx-compact="">
+<html lang="en" data-scene="sentinel" data-fx-compact="" data-look="chakra" data-hero="right" data-card="glass" data-motif="noise" data-backdrop="dust">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,8 +10,8 @@
   <meta property="og:url" content="https://umer-78.github.io/log-sentinel/">
   <meta name="twitter:card" content="summary">
   <meta name="description" content="Paste auth.log lines and watch sliding-window rules catch brute-force, spray and success-after-failures attacks — entirely in your browser.">
-  <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0a0c10" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ba5a04" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#170d07" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232563eb'/><stop offset='1' stop-color='%237c3aed'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><text x='16' y='22' font-size='14' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>LS</text></svg>">
   <style>
     :root {
@@ -350,7 +350,7 @@ html.mk-pre header.top, html.mk-pre main section, html.mk-pre section.card, html
 <script>(function(){try{if(!(matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){var r=document.documentElement;r.classList.add('mk-pre');setTimeout(function(){r.classList.remove('mk-pre')},2200)}}catch(e){}})();</script>
 <!-- /motion-kit:head -->
 <!-- fx:v2 -->
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600&family=Share+Tech+Mono&display=swap" id="fx-fonts">
 <link rel="stylesheet" href="fx.css">
 <style>:root { --fx-2: #06b6d4; --fx-3: #f59e0b; }</style>
 <!-- /fx:v2 -->
@@ -364,6 +364,11 @@ html.mk-pre header.top, html.mk-pre main section, html.mk-pre section.card, html
 <meta property="og:image:alt" content="logsentinel — SSH Brute-Force Detector Demo: the live demo">
 <meta name="twitter:card" content="summary_large_image">
 <!-- /og -->
+<style id="fx-look">:root[data-look] { --font: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif; --fx-display: 'Chakra Petch', system-ui, sans-serif; --mono: 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; --fx-display-weight: 700; --fx-tracking: -0.01em; --fx-title-case: uppercase; --fx-radius: 2px; --fx-hero-radius: 12px; --fx-control-radius: 4px; --accent: #ba5a04; --accent-hover: #9f4d07; --accent-soft: #ffeee5; --accent-glow: rgb(186 90 4 / 0.16); --on-accent: #ffffff; --fx-2: #0892c4; --fx-3: #ca940f; --bg: #fff7f3; --bg-elevated: #fffdfc; --surface: #fffefd; --surface-2: #fcf1eb; --surface-3: #f4e8e2; --border: #e8dbd3; --border-strong: #cfc1b9; --line: #e8dbd3; }
+@media (prefers-color-scheme: dark) { :root[data-look]:not([data-theme="light"]) { --accent: #f17e28; --accent-hover: #fe9652; --accent-soft: rgb(241 126 40 / 0.14); --accent-glow: rgb(241 126 40 / 0.2); --on-accent: #1c0e05; --fx-2: #37c0fa; --fx-3: #eab444; --bg: #170d07; --bg-elevated: #1e130d; --surface: #22160f; --surface-2: #2b1e17; --surface-3: #352820; --border: #392e27; --border-strong: #4b4039; --line: #392e27; } }
+:root[data-look][data-theme="dark"] { --accent: #f17e28; --accent-hover: #fe9652; --accent-soft: rgb(241 126 40 / 0.14); --accent-glow: rgb(241 126 40 / 0.2); --on-accent: #1c0e05; --fx-2: #37c0fa; --fx-3: #eab444; --bg: #170d07; --bg-elevated: #1e130d; --surface: #22160f; --surface-2: #2b1e17; --surface-3: #352820; --border: #392e27; --border-strong: #4b4039; --line: #392e27; }</style>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js" data-fx>
+<link rel="modulepreload" href="fx3d.js" data-fx>
 </head>
 <body>
   <noscript><p style="margin:16px;padding:12px 16px;border-radius:8px;background:#fff7ed;color:#9a3412;border:1px solid #fdba74;font-family:system-ui,sans-serif">This interactive demo requires JavaScript. Please enable it to run the demo in your browser.</p></noscript>
